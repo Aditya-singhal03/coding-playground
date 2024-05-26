@@ -5,17 +5,27 @@ interface FileTreeInterface {
 }
 
 
-const FileTreeNode = ({nodeName,nodeChildren,level}:{nodeName:string,nodeChildren:FileTreeInterface[] | undefined,level:number})=>{
+const FileTreeNode = ({nodeName,nodeChildren,path,level,setSelectedFilePath}:{nodeName:string,nodeChildren:FileTreeInterface[] | undefined,path:string,level:number,setSelectedFilePath:React.Dispatch<React.SetStateAction<string>>})=>{
 
-
+    const isDir=!!nodeChildren
     return (
         <div className="ml-4">
-            <div className={`${nodeChildren?"":"bg-slate-300"} m-2`}>{nodeName}</div>
+            <div className={`${nodeChildren?"":"bg-slate-300"} m-2 ${!isDir && "cursor-pointer"}`} onClick={(e)=>{
+                e.stopPropagation();
+                if(isDir) return;
+                setSelectedFilePath(path)
+            }}>{nodeName}</div>
             {nodeChildren && 
                 <div>
                     {nodeChildren.map((child)=>{
                         return <div>
-                            <FileTreeNode nodeName={child.name} nodeChildren={child.children} level={level+1}/>
+                            <FileTreeNode 
+                                nodeName={child.name} 
+                                nodeChildren={child.children} 
+                                path={child.path}
+                                level={level+1} 
+                                setSelectedFilePath={setSelectedFilePath}
+                            />
                         </div>
                     })}
                 </div>
@@ -24,13 +34,13 @@ const FileTreeNode = ({nodeName,nodeChildren,level}:{nodeName:string,nodeChildre
     )
 }
 
-const FileTreeComponent = ({fileTreeObject}:{fileTreeObject : FileTreeInterface | null}) => {
+const FileTreeComponent = ({fileTreeObject,setSelectedFilePath}:{fileTreeObject : FileTreeInterface | null,setSelectedFilePath:React.Dispatch<React.SetStateAction<string>>}) => {
     
 
 
     return (
         <div>
-            {fileTreeObject && <FileTreeNode nodeName={fileTreeObject.name} nodeChildren={fileTreeObject.children} level={0} />}
+            {fileTreeObject && <FileTreeNode nodeName={fileTreeObject.name} nodeChildren={fileTreeObject.children} path={fileTreeObject.path} level={0} setSelectedFilePath={setSelectedFilePath}/>}
         </div>
     )
 }
