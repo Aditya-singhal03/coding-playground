@@ -1,11 +1,11 @@
 import WebSocket, { WebSocketServer } from 'ws';
-import express from 'express'
+import express, { Request,Response } from 'express'
 import * as pty from 'node-pty';
 import cors from 'cors'
 import { getRootFileStructure } from './controller/getRootFileStructure';
 import chokidar from 'chokidar';
 import path from 'path';
-import fs from 'fs'
+import { promises as fs } from 'fs';
 
 const app = express()
 
@@ -72,22 +72,35 @@ chokidar.watch(cp).on('all', (event, path) => {
     });
 });
 
-const saveCode = (data:string)=>{
+const saveCode = async (data:string)=>{
     const parsedData:{code:string,path:string} = JSON.parse(data);
     const code=  parsedData.code;
     const pathToFile  = parsedData.path;
 
     // console.log(code);
     // console.log(pathToFile)
-
-    fs.writeFile(pathToFile,code,()=>{
-        console.log(`code has been saved to ${pathToFile}`)
-    })
+    try{
+        await fs.writeFile(pathToFile,code)
+        console.log("code saved")
+    }catch(err){
+        console.log("Error saving code-->",err)
+    }
 }
   
 
 app.get("/",(req,res)=>{
     res.json("Aditrya")
+})
+
+app.get("/file/content",async (req:Request,res:Response)=>{
+    const path = req.query.path as string;
+    try {
+        const codeFromFile = await fs.readFile(path, 'utf-8');
+        return res.json({status:true,data:codeFromFile})
+    } catch (error) {
+        console.log("Error feteching code",error)
+        return res.json({status:false,data:"Error fetcing code"})
+    }
 })
 
 app.get("/files",getRootFileStructure);

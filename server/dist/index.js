@@ -22,6 +22,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -33,7 +42,7 @@ const cors_1 = __importDefault(require("cors"));
 const getRootFileStructure_1 = require("./controller/getRootFileStructure");
 const chokidar_1 = __importDefault(require("chokidar"));
 const path_1 = __importDefault(require("path"));
-const fs_1 = __importDefault(require("fs"));
+const fs_1 = require("fs");
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
@@ -84,17 +93,32 @@ chokidar_1.default.watch(cp).on('all', (event, path) => {
         }
     });
 });
-const saveCode = (data) => {
+const saveCode = (data) => __awaiter(void 0, void 0, void 0, function* () {
     const parsedData = JSON.parse(data);
     const code = parsedData.code;
     const pathToFile = parsedData.path;
-    console.log(code);
-    console.log(pathToFile);
-    fs_1.default.writeFile(pathToFile, code, () => {
-        console.log("code has been saved");
-    });
-};
+    // console.log(code);
+    // console.log(pathToFile)
+    try {
+        yield fs_1.promises.writeFile(pathToFile, code);
+        console.log("code saved");
+    }
+    catch (err) {
+        console.log("Error saving code-->", err);
+    }
+});
 app.get("/", (req, res) => {
     res.json("Aditrya");
 });
+app.get("/file/content", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const path = req.query.path;
+    try {
+        const codeFromFile = yield fs_1.promises.readFile(path, 'utf-8');
+        return res.json({ status: true, data: codeFromFile });
+    }
+    catch (error) {
+        console.log("Error feteching code", error);
+        return res.json({ status: false, data: "Error fetcing code" });
+    }
+}));
 app.get("/files", getRootFileStructure_1.getRootFileStructure);

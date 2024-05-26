@@ -3,7 +3,7 @@ import "@xterm/xterm/css/xterm.css"
 import Terminal from "./components/Terminal";
 import FileTreeComponent from "./components/FileTreeComponent";
 import newSocket from "./utils/socket";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 
 interface FileTreeInterface {
@@ -18,9 +18,12 @@ function App() {
   const [terminalResponse , setTerminalResponse] = useState<string>("")
   const [fileTreeObject,setFileTreeObject] = useState<FileTreeInterface | null>(null)
   const [selectedFilePath,setSelectedFilePath] = useState<string>("")
+  const [selectedFileCode,setSelectedFileCode] = useState<string>("")
   const [code,setCode] = useState<string | undefined>("")
 
-    const fetchFileStructure = async (eventFromChokidar:string)=>{
+  const isSaved = selectedFileCode===code
+
+    const fetchFileStructure = async (eventFromChokidar?:string)=>{
         try{
             if(eventFromChokidar==='change') return;
             const {data} = await axios.get("http://localhost:8080/files");
@@ -61,12 +64,39 @@ function App() {
   },[])
 
   useEffect(()=>{
-    const debounce = setTimeout(()=>{
-      if(selectedFilePath.length>0) newSocket.send(JSON.stringify({event:"saveCode",data:JSON.stringify({code:code,path:selectedFilePath})}))
-    },5000)
+    if(selectedFilePath){
+      setCode(selectedFileCode)
+    }
+  },[selectedFileCode,selectedFilePath])
 
-    return ()=>clearTimeout(debounce)
-  },[code])
+  useEffect(()=>{
+    if(code && !isSaved){
+      const debounce = setTimeout(()=>{
+        if(selectedFilePath.length>0) newSocket.send(JSON.stringify({event:"saveCode",data:JSON.stringify({code:code,path:selectedFilePath})}))
+      },5000)
+      return ()=>clearTimeout(debounce)
+    }
+  },[code,isSaved,selectedFilePath])
+
+  const fetchFileCode = useCallback(async ()=>{
+    try{
+      const {data} = await axios.get("http://localhost:8080/file/content",{
+        params:{
+          path:selectedFilePath
+        }
+      });
+      if(data.status){
+        setSelectedFileCode(data.data)
+      }
+    }catch(err){
+      console.log("Error fethcing code from backend");
+      console.log(err)
+    }
+  },[selectedFilePath]) 
+
+  useEffect(()=>{
+    if(selectedFilePath.length>0) fetchFileCode()
+  },[selectedFilePath,fetchFileCode])
 
   const handleEditorChange = async (value:string | undefined)=>{
     setCode(value)
@@ -83,6 +113,7 @@ function App() {
           <div className="h-full">
             <Editor
               onChange={handleEditorChange}
+              value={code}
               className="h-full"
               language="javascript"
               defaultValue="// some comment"

@@ -18,13 +18,14 @@ const path_1 = __importDefault(require("path"));
 const getRootFileStructure = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const cp = path_1.default.resolve(__dirname, "../../../user");
-        //console.log(cp);
-        const tree = (0, directory_tree_1.default)(cp);
+        const nodeModulePath = path_1.default.resolve(cp, "./node_modules");
+        // Use a RegExp to exclude the node_modules directory
+        const tree = (0, directory_tree_1.default)(cp, { exclude: [new RegExp(nodeModulePath)] });
         return res.json({ status: true, msg: tree });
     }
     catch (err) {
         console.log("Error fetching root file structure", err);
-        return res.json({ status: false, msg: "Error feteching tree structure" });
+        return res.json({ status: false, msg: "Error fetching tree structure" });
     }
 });
 exports.getRootFileStructure = getRootFileStructure;
