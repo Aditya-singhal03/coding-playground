@@ -17,9 +17,12 @@ function App() {
 
   const [terminalResponse , setTerminalResponse] = useState<string>("")
   const [fileTreeObject,setFileTreeObject] = useState<FileTreeInterface | null>(null)
+  const [selectedFilePath,setSelectedFilePath] = useState<string>("")
+  const [code,setCode] = useState<string | undefined>("")
 
-    const fetchFileStructure = async ()=>{
+    const fetchFileStructure = async (eventFromChokidar:string)=>{
         try{
+            if(eventFromChokidar==='change') return;
             const {data} = await axios.get("http://localhost:8080/files");
             console.log(data)
             setFileTreeObject(data.msg)
@@ -41,7 +44,7 @@ function App() {
             setTerminalResponse(data);
             break;
           case 'fileChange':
-            fetchFileStructure();
+            fetchFileStructure(data);
             break;
           default:
             console.log(`Unknown event: ${eventType}`);
@@ -57,21 +60,36 @@ function App() {
     fetchFileStructure()
   },[])
 
+  useEffect(()=>{
+    const debounce = setTimeout(()=>{
+      if(selectedFilePath.length>0) newSocket.send(JSON.stringify({event:"saveCode",data:JSON.stringify({code:code,path:selectedFilePath})}))
+    },5000)
+
+    return ()=>clearTimeout(debounce)
+  },[code])
+
+  const handleEditorChange = async (value:string | undefined)=>{
+    setCode(value)
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <div className="flex flex-1">
         <div className="basis-1/4">
-          <FileTreeComponent  fileTreeObject={fileTreeObject}/>
+          <FileTreeComponent  fileTreeObject={fileTreeObject} setSelectedFilePath={setSelectedFilePath}/>
         </div>
-        <div className="basis-3/4 grid grid-rows-5 grid-flow-col gap-2">
-          <div className="row-span-3">
-            <Editor   
+        <div className="basis-3/4 flex flex-col">
+          <div>{selectedFilePath.split('/').join('>')}</div>
+          <div className="h-full">
+            <Editor
+              onChange={handleEditorChange}
+              className="h-full"
               language="javascript"
               defaultValue="// some comment"
               theme="vs-dark"
             />
           </div>
-          <div className="row-span-2">
+          <div className="">
             <Terminal terminalResponse={terminalResponse}/>
           </div>
         </div>

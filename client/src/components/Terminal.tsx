@@ -13,7 +13,7 @@ const Terminal = ({terminalResponse}:{terminalResponse:string}) => {
     
     const onDataFunc = (data: string) => {
         console.log(`Received data: ${data}`);
-        newSocket?.send(data);
+        newSocket?.send(JSON.stringify({event:"terminalCommand",data:data}));
     }
 
     useEffect(() => {

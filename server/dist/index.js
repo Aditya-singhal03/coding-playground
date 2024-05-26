@@ -33,6 +33,7 @@ const cors_1 = __importDefault(require("cors"));
 const getRootFileStructure_1 = require("./controller/getRootFileStructure");
 const chokidar_1 = __importDefault(require("chokidar"));
 const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
@@ -43,9 +44,15 @@ const wss = new ws_1.WebSocketServer({ server: httpServer });
 wss.on('connection', function connection(ws) {
     ws.on('error', console.error);
     ws.on('message', function message(data, isBinary) {
-        const commandFromClient = data.toString();
-        console.log(commandFromClient, isBinary);
-        ptyProcess.write(commandFromClient);
+        const stringData = data.toString();
+        const parsedData = JSON.parse(stringData);
+        if (parsedData.event == "terminalCommand") {
+            console.log(parsedData.data, isBinary);
+            ptyProcess.write(parsedData.data);
+        }
+        else if (parsedData.event == "saveCode") {
+            saveCode(parsedData.data);
+        }
     });
     ws.on('close', () => {
         console.log("Connection closed");
@@ -77,6 +84,16 @@ chokidar_1.default.watch(cp).on('all', (event, path) => {
         }
     });
 });
+const saveCode = (data) => {
+    const parsedData = JSON.parse(data);
+    const code = parsedData.code;
+    const pathToFile = parsedData.path;
+    console.log(code);
+    console.log(pathToFile);
+    fs_1.default.writeFile(pathToFile, code, () => {
+        console.log("code has been saved");
+    });
+};
 app.get("/", (req, res) => {
     res.json("Aditrya");
 });
