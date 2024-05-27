@@ -3,8 +3,14 @@ import "@xterm/xterm/css/xterm.css"
 import Terminal from "./components/Terminal";
 import FileTreeComponent from "./components/FileTreeComponent";
 import newSocket from "./utils/socket";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
+import { Terminal as XTerminal } from "@xterm/xterm";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable"
 
 interface FileTreeInterface {
   path: string;
@@ -14,12 +20,13 @@ interface FileTreeInterface {
 
 
 function App() {
-
-  const [terminalResponse , setTerminalResponse] = useState<string>("")
   const [fileTreeObject,setFileTreeObject] = useState<FileTreeInterface | null>(null)
   const [selectedFilePath,setSelectedFilePath] = useState<string>("")
   const [selectedFileCode,setSelectedFileCode] = useState<string>("")
   const [code,setCode] = useState<string | undefined>("")
+  const [terminal,setTerminal] = useState<XTerminal | null>(null)
+  const stateRef = useRef<XTerminal | null>(null);
+  stateRef.current = terminal;
 
   const isSaved = selectedFileCode===code
 
@@ -58,6 +65,11 @@ function App() {
     }
     return () => newSocket.close();
   },[])
+
+  const setTerminalResponse = (data:string)=>{
+    console.log("writing",stateRef.current)
+    stateRef.current && stateRef.current.write(data);
+  }
 
   useEffect(()=>{
     fetchFileStructure()
@@ -103,29 +115,57 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex flex-1">
-        <div className="basis-1/4">
-          <FileTreeComponent  fileTreeObject={fileTreeObject} setSelectedFilePath={setSelectedFilePath}/>
-        </div>
-        <div className="basis-3/4 flex flex-col">
-          <div>{selectedFilePath.split('/').join('>')}</div>
-          <div className="h-full">
-            <Editor
-              onChange={handleEditorChange}
-              value={code}
-              className="h-full"
-              language="javascript"
-              defaultValue="// some comment"
-              theme="vs-dark"
-            />
+    <>
+      <ResizablePanelGroup
+      direction="horizontal"
+      className="max-w-md rounded-lg border"
+      >
+        <ResizablePanel defaultSize={50}>
+          <div className="flex h-[200px] items-center justify-center p-6">
+            <span className="font-semibold">One</span>
           </div>
-          <div className="">
-            <Terminal terminalResponse={terminalResponse}/>
+        </ResizablePanel>
+        <ResizableHandle />
+        <ResizablePanel defaultSize={50}>
+          <ResizablePanelGroup direction="vertical">
+            <ResizablePanel defaultSize={25}>
+              <div className="flex h-full items-center justify-center p-6">
+                <span className="font-semibold">Two</span>
+              </div>
+            </ResizablePanel>
+            <ResizableHandle />
+            <ResizablePanel defaultSize={75}>
+              <div className="flex h-full items-center justify-center p-6">
+                <span className="font-semibold">Three</span>
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+      <div className="min-h-screen flex flex-col">
+        <div className="flex flex-1">
+          <div className="basis-1/4">
+            <FileTreeComponent  fileTreeObject={fileTreeObject} setSelectedFilePath={setSelectedFilePath}/>
+          </div>
+          <div className="basis-3/4 flex flex-col">
+            <div>{selectedFilePath.split('/').join('>')}</div>
+            <div className="h-full">
+              <Editor
+                onChange={handleEditorChange}
+                value={code}
+                className="h-full"
+                language="javascript"
+                defaultValue="// some comment"
+                theme="vs-dark"
+              />
+            </div>
+            <div className="">
+              <Terminal setTerminal={setTerminal}/>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
