@@ -1,16 +1,11 @@
 import { Terminal as XTerminal } from "@xterm/xterm";
 import "@xterm/xterm/css/xterm.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { FitAddon } from '@xterm/addon-fit';
 import newSocket from "../utils/socket";
 
-const Terminal = ({terminalResponse}:{terminalResponse:string}) => {
+const Terminal = ({setTerminal}:{setTerminal:React.Dispatch<React.SetStateAction<XTerminal | null>>}) => {
     const terminalRef = useRef<HTMLDivElement>(null);
-    const [terminal,setTerminal] = useState<XTerminal | null>(null)
-    const stateRef = useRef<XTerminal | null>(null)
-    stateRef.current = terminal
-    
-    
     const onDataFunc = (data: string) => {
         console.log(`Received data: ${data}`);
         newSocket?.send(JSON.stringify({event:"terminalCommand",data:data}));
@@ -36,10 +31,6 @@ const Terminal = ({terminalResponse}:{terminalResponse:string}) => {
             terminal.dispose(); // Clean up the terminal instance on component unmount
         }
     }, []);
-
-    useEffect(()=>{
-        terminal && terminal.write(terminalResponse)
-    },[terminalResponse])
 
     return (
         <div ref={terminalRef}>
