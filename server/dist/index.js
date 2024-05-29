@@ -68,11 +68,12 @@ wss.on('connection', function connection(ws) {
     });
     console.log("Connection made--->");
 });
+const cp = path_1.default.resolve(__dirname, "../../user");
 const ptyProcess = pty.spawn('bash', [], {
     name: 'xterm-color',
     cols: 80,
     rows: 30,
-    cwd: process.env.INIT_PWD,
+    cwd: cp,
     env: process.env
 });
 ptyProcess.onData((data) => {
@@ -84,7 +85,6 @@ ptyProcess.onData((data) => {
     });
     wss.emit;
 });
-const cp = path_1.default.resolve(__dirname, "../../user");
 chokidar_1.default.watch(cp).on('all', (event, path) => {
     console.log("File change detected");
     wss.clients.forEach(function each(client) {

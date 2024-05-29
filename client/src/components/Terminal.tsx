@@ -13,8 +13,9 @@ const Terminal = ({setTerminal}:{setTerminal:React.Dispatch<React.SetStateAction
 
     useEffect(() => {
         const terminal = new XTerminal({
-            
-            cursorBlink: true // Optional: Makes the cursor blink, useful for visibility
+            cursorBlink: true,
+            fontSize: 16,
+            fontFamily: '"Fira Code", monospace'
         });
         const fitAddon = new FitAddon();
         terminal.loadAddon(fitAddon);
@@ -23,17 +24,27 @@ const Terminal = ({setTerminal}:{setTerminal:React.Dispatch<React.SetStateAction
             terminal.open(terminalRef.current);
             fitAddon.fit();
             terminal.onData(data => onDataFunc(data));
+
             setTerminal(terminal);
-        }
-        
-        return () => {
-            console.log("clearing terminal")
-            terminal.dispose(); // Clean up the terminal instance on component unmount
+
+            
+            const resizeObserver = new ResizeObserver(() => {
+                fitAddon.fit();
+            });
+
+            resizeObserver.observe(terminalRef.current);
+
+            return () => {
+                resizeObserver.disconnect();
+                terminal.dispose();
+            };
         }
     }, []);
 
+
     return (
-        <div ref={terminalRef}>
+        <div  id="kik" className="h-full" ref={terminalRef}>
+            
         </div>
     );
 }
