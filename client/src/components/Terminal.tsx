@@ -2,6 +2,7 @@ import { Terminal as XTerminal } from "@xterm/xterm";
 import "@xterm/xterm/css/xterm.css";
 import { useEffect, useRef } from "react";
 import { FitAddon } from '@xterm/addon-fit';
+
 import newSocket from "../utils/socket";
 
 const Terminal = ({setTerminal}:{setTerminal:React.Dispatch<React.SetStateAction<XTerminal | null>>}) => {
