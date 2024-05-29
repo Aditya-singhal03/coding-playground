@@ -115,57 +115,62 @@ function App() {
   }
 
   return (
-    <>
+    <div className="h-screen">
       <ResizablePanelGroup
-      direction="horizontal"
-      className="max-w-md rounded-lg border"
+        direction="horizontal"
+        className=" rounded-lg border "
       >
-        <ResizablePanel defaultSize={50}>
-          <div className="flex h-[200px] items-center justify-center p-6">
-            <span className="font-semibold">One</span>
+        <ResizablePanel defaultSize={20}>
+          <div className="">
+            <FileTreeComponent  fileTreeObject={fileTreeObject} setSelectedFilePath={setSelectedFilePath}/>
           </div>
         </ResizablePanel>
         <ResizableHandle />
-        <ResizablePanel defaultSize={50}>
+        <ResizablePanel defaultSize={80}>
           <ResizablePanelGroup direction="vertical">
-            <ResizablePanel defaultSize={25}>
-              <div className="flex h-full items-center justify-center p-6">
-                <span className="font-semibold">Two</span>
-              </div>
+            <ResizablePanel defaultSize={45} maxSize={100}>
+                <Editor
+                  onChange={handleEditorChange}
+                  value={code}
+                  className=""
+                  language="javascript"
+                  defaultValue="// some comment"
+                  theme="vs-dark"
+                />
             </ResizablePanel>
             <ResizableHandle />
-            <ResizablePanel defaultSize={75}>
-              <div className="flex h-full items-center justify-center p-6">
-                <span className="font-semibold">Three</span>
-              </div>
+            <ResizablePanel defaultSize={55} maxSize={100} className="">
+              <Terminal setTerminal={setTerminal}/>
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
       </ResizablePanelGroup>
-      <div className="min-h-screen flex flex-col">
-        <div className="flex flex-1">
-          <div className="basis-1/4">
-            <FileTreeComponent  fileTreeObject={fileTreeObject} setSelectedFilePath={setSelectedFilePath}/>
-          </div>
-          <div className="basis-3/4 flex flex-col">
-            <div>{selectedFilePath.split('/').join('>')}</div>
-            <div className="h-full">
-              <Editor
-                onChange={handleEditorChange}
-                value={code}
-                className="h-full"
-                language="javascript"
-                defaultValue="// some comment"
-                theme="vs-dark"
-              />
-            </div>
-            <div className="">
-              <Terminal setTerminal={setTerminal}/>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+    </div>
+
+
+      // <div className="min-h-screen flex flex-col">
+      //   <div className="flex flex-1">
+      //     <div className="basis-1/4">
+      //       <FileTreeComponent  fileTreeObject={fileTreeObject} setSelectedFilePath={setSelectedFilePath}/>
+      //     </div>
+      //     <div className="basis-3/4 flex flex-col">
+      //       <div>{selectedFilePath.split('/').join('>')}</div>
+      //       <div className="h-full">
+      //         <Editor
+      //           onChange={handleEditorChange}
+      //           value={code}
+      //           className="h-full"
+      //           language="javascript"
+      //           defaultValue="// some comment"
+      //           theme="vs-dark"
+      //         />
+      //       </div>
+      //       <div className="">
+      //         <Terminal setTerminal={setTerminal}/>
+      //       </div>
+      //     </div>
+      //   </div>
+      // </div>
   )
 }
 
