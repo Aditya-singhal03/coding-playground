@@ -11,6 +11,8 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
+import { editor } from "monaco-editor";
+import { RxCross1 } from "react-icons/rx";
 
 interface FileTreeInterface {
   path: string;
@@ -27,6 +29,13 @@ function App() {
   const [terminal,setTerminal] = useState<XTerminal | null>(null)
   const stateRef = useRef<XTerminal | null>(null);
   stateRef.current = terminal;
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+
+  //multi tab support states
+  const [modelLanguage,setModelLanguage] = useState<string>("");
+  const [tabsArray,setTabsArray] = useState<FileTreeInterface[]>([]);
+  const [tabSelected,setTabSelected] = useState<number>(0);
+  // const 
 
   const isSaved = selectedFileCode===code
 
@@ -106,12 +115,184 @@ function App() {
     }
   },[selectedFilePath]) 
 
+  const getCodeLanguage = useCallback(()=>{
+    const dotArray = selectedFilePath.split('.');
+    const shortLanguage = dotArray[dotArray.length - 1].toLowerCase(); // Convert to lowercase to handle case variations
+    switch (shortLanguage) {
+        case 'js':
+        case 'mjs':
+        case 'cjs':
+            setModelLanguage('javascript');
+            break;
+        case 'ts':
+            setModelLanguage('typescript');
+            break;
+        case 'jsx':
+            setModelLanguage('javascript');
+            break;
+        case 'tsx':
+            setModelLanguage('typescript');
+            break;
+        case 'json':
+            setModelLanguage('json');
+            break;
+        case 'html':
+        case 'htm':
+            setModelLanguage('html');
+            break;
+        case 'css':
+            setModelLanguage('css');
+            break;
+        case 'scss':
+        case 'sass':
+            setModelLanguage('scss');
+            break;
+        case 'less':
+            setModelLanguage('less');
+            break;
+        case 'xml':
+        case 'xsd':
+        case 'xslt':
+        case 'svg':
+            setModelLanguage('xml');
+            break;
+        case 'yaml':
+        case 'yml':
+            setModelLanguage('yaml');
+            break;
+        case 'md':
+        case 'markdown':
+            setModelLanguage('markdown');
+            break;
+        case 'py':
+            setModelLanguage('python');
+            break;
+        case 'rb':
+            setModelLanguage('ruby');
+            break;
+        case 'php':
+            setModelLanguage('php');
+            break;
+        case 'java':
+            setModelLanguage('java');
+            break;
+        case 'c':
+            setModelLanguage('c');
+            break;
+        case 'cpp':
+        case 'cc':
+        case 'cxx':
+            setModelLanguage('cpp');
+            break;
+        case 'cs':
+            setModelLanguage('csharp');
+            break;
+        case 'go':
+            setModelLanguage('go');
+            break;
+        case 'swift':
+            setModelLanguage('swift');
+            break;
+        case 'rs':
+            setModelLanguage('rust');
+            break;
+        case 'sh':
+        case 'bash':
+            setModelLanguage('shell');
+            break;
+        case 'bat':
+            setModelLanguage('bat');
+            break;
+        case 'sql':
+            setModelLanguage('sql');
+            break;
+        case 'r':
+            setModelLanguage('r');
+            break;
+        case 'lua':
+            setModelLanguage('lua');
+            break;
+        case 'pl':
+        case 'pm':
+            setModelLanguage('perl');
+            break;
+        case 'kt':
+        case 'kts':
+            setModelLanguage('kotlin');
+            break;
+        case 'dart':
+            setModelLanguage('dart');
+            break;
+        case 'coffee':
+            setModelLanguage('coffeescript');
+            break;
+        case 'ini':
+            setModelLanguage('ini');
+            break;
+        case 'toml':
+            setModelLanguage('toml');
+            break;
+        case 'vb':
+            setModelLanguage('vb');
+            break;
+        case 'matlab':
+            setModelLanguage('matlab');
+            break;
+        case 'groovy':
+            setModelLanguage('groovy');
+            break;
+        default:
+            setModelLanguage('plaintext');
+            break;
+    }
+  },[selectedFilePath])
+
+  const hadleTabFunctionality = useCallback(()=>{
+    const arr = selectedFilePath.split('/');
+    const fileName = arr[arr.length-1];
+    const tabArrayLength = tabsArray.length;
+    const indexTab = tabsArray.findIndex(tab=>tab.path===selectedFilePath);
+    console.log(indexTab," ",tabArrayLength," ",fileName)
+    if(indexTab!==-1){
+      console.log("already in tab array")
+      setTabSelected(indexTab)
+    }else{
+      setTabsArray(old=>[...old,{
+        path:selectedFilePath,
+        name:fileName
+      }])
+      setTabSelected(tabArrayLength);
+    }
+  },[selectedFilePath,tabsArray]) 
+
+  console.log(tabSelected)
+  console.log(tabsArray)
+  console.log(selectedFilePath)
+
   useEffect(()=>{
-    if(selectedFilePath.length>0) fetchFileCode()
-  },[selectedFilePath,fetchFileCode])
+    if(selectedFilePath.length>0){
+      fetchFileCode()
+      getCodeLanguage()
+      hadleTabFunctionality()
+    }else{
+
+    }
+  },[selectedFilePath,fetchFileCode,getCodeLanguage,hadleTabFunctionality])
 
   const handleEditorChange = async (value:string | undefined)=>{
     setCode(value)
+  }
+
+  useEffect(() => {
+    editorRef.current?.focus();
+  }, [selectedFilePath]);
+
+  const handleTabDelete=(tabPath:string,tabIdx:number)=>{
+    const isFilePathChange = tabIdx===tabsArray.length-1 || tabSelected===tabIdx
+    const newTabArray = tabsArray.filter(tab=>tab.path!==tabPath);
+    setTabsArray(newTabArray);
+    if(isFilePathChange) setSelectedFilePath(newTabArray.length>0?newTabArray[newTabArray.length-1].path:"");
+    //setTabSelected(newTabArray.length>0?newTabArray.length-1:0);
   }
 
   return (
@@ -129,14 +310,36 @@ function App() {
         <ResizablePanel defaultSize={80}>
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel defaultSize={45} maxSize={100}>
-                <Editor
-                  onChange={handleEditorChange}
-                  value={code}
-                  className=""
-                  language="javascript"
-                  defaultValue="// some comment"
-                  theme="vs-dark"
-                />
+                <div className="flex justify-start border-y-4 border-x-0">
+                  {tabsArray.map((tab,idx)=>{
+                    return (
+                      <div key={idx} className={`flex px-2 border-x-2 items-center gap-1 ${tabSelected===idx?"bg-slate-200":""}`}>
+                        <button onClick={()=>{
+                          setSelectedFilePath(tab.path)
+                        }}>{tab.name}</button>
+                        <button onClick={()=>handleTabDelete(tab.path,idx)}>
+                          <RxCross1 size={20} className="p-1 hover:bg-slate-300 rounded-lg"/>
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="p-1">{selectedFilePath.split('/').join('>')}</div>
+                {selectedFilePath===""?(<div>
+                  no code
+                </div>):(
+                  <Editor
+                    onChange={handleEditorChange}
+                    value={code}
+                    className=""
+                    language="javascript"
+                    theme="vs-dark"
+                    path={selectedFilePath}
+                    defaultValue={selectedFileCode}
+                    defaultLanguage={modelLanguage}
+                    onMount={(editor) => (editorRef.current = editor)}
+                  />
+                )}
             </ResizablePanel>
             <ResizableHandle />
             <ResizablePanel defaultSize={55} maxSize={100} className="">
