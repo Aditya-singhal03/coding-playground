@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/resizable"
 import { editor } from "monaco-editor";
 import { RxCross1 } from "react-icons/rx";
+import IframeComponent from "./components/IframeComponent";
 
 interface FileTreeInterface {
   path: string;
@@ -30,6 +31,7 @@ function App() {
   const stateRef = useRef<XTerminal | null>(null);
   stateRef.current = terminal;
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  //const previewIframeRef = useRef<HTMLIFrameElement | null>(null)
 
   //multi tab support states
   const [modelLanguage,setModelLanguage] = useState<string>("");
@@ -64,6 +66,7 @@ function App() {
             break;
           case 'fileChange':
             fetchFileStructure(data);
+            //updatePreview()
             break;
           default:
             console.log(`Unknown event: ${eventType}`);
@@ -274,8 +277,6 @@ function App() {
       fetchFileCode()
       getCodeLanguage()
       hadleTabFunctionality()
-    }else{
-
     }
   },[selectedFilePath,fetchFileCode,getCodeLanguage,hadleTabFunctionality])
 
@@ -295,6 +296,17 @@ function App() {
     //setTabSelected(newTabArray.length>0?newTabArray.length-1:0);
   }
 
+  // const updatePreview = ()=>{
+  //   if(previewIframeRef.current){
+  //     const previewUrl = "http://100.0.226.146:1337/";
+  //     previewIframeRef.current.src = previewUrl;
+  //   }
+  // }
+
+  // useEffect(()=>{
+  //   updatePreview();
+  // },[])
+
   return (
     <div className="h-screen">
       <ResizablePanelGroup
@@ -307,7 +319,7 @@ function App() {
           </div>
         </ResizablePanel>
         <ResizableHandle />
-        <ResizablePanel defaultSize={80}>
+        <ResizablePanel defaultSize={60}>
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel defaultSize={45} maxSize={100}>
                 <div className="flex justify-start border-y-4 border-x-0">
@@ -347,33 +359,12 @@ function App() {
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
+        <ResizableHandle/>
+        <ResizablePanel defaultSize={20}>
+          <IframeComponent/>
+        </ResizablePanel>
       </ResizablePanelGroup>
     </div>
-
-
-      // <div className="min-h-screen flex flex-col">
-      //   <div className="flex flex-1">
-      //     <div className="basis-1/4">
-      //       <FileTreeComponent  fileTreeObject={fileTreeObject} setSelectedFilePath={setSelectedFilePath}/>
-      //     </div>
-      //     <div className="basis-3/4 flex flex-col">
-      //       <div>{selectedFilePath.split('/').join('>')}</div>
-      //       <div className="h-full">
-      //         <Editor
-      //           onChange={handleEditorChange}
-      //           value={code}
-      //           className="h-full"
-      //           language="javascript"
-      //           defaultValue="// some comment"
-      //           theme="vs-dark"
-      //         />
-      //       </div>
-      //       <div className="">
-      //         <Terminal setTerminal={setTerminal}/>
-      //       </div>
-      //     </div>
-      //   </div>
-      // </div>
   )
 }
 
