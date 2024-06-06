@@ -44,11 +44,13 @@ const chokidar_1 = __importDefault(require("chokidar"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = require("fs");
 const app = (0, express_1.default)();
+const cp = path_1.default.resolve(__dirname, "../../user");
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 const httpServer = app.listen(8080, () => {
     console.log('Server is listening on port 8080');
 });
+app.use(express_1.default.static(path_1.default.join(cp, 'dist')));
 const wss = new ws_1.WebSocketServer({ server: httpServer });
 wss.on('connection', function connection(ws) {
     ws.on('error', console.error);
@@ -68,7 +70,6 @@ wss.on('connection', function connection(ws) {
     });
     console.log("Connection made--->");
 });
-const cp = path_1.default.resolve(__dirname, "../../user");
 const ptyProcess = pty.spawn('bash', [], {
     name: 'xterm-color',
     cols: 80,
@@ -86,7 +87,7 @@ ptyProcess.onData((data) => {
     wss.emit;
 });
 chokidar_1.default.watch(cp).on('all', (event, path) => {
-    console.log("File change detected");
+    //console.log("File change detected")
     wss.clients.forEach(function each(client) {
         if (client.readyState === ws_1.default.OPEN) {
             client.send(JSON.stringify({ event: "fileChange", data: event }));
@@ -109,6 +110,11 @@ const saveCode = (data) => __awaiter(void 0, void 0, void 0, function* () {
 });
 app.get("/", (req, res) => {
     res.json("Aditrya");
+});
+app.get('/preview', (req, res) => {
+    const filePath = path_1.default.join(cp, 'dist/index.html');
+    console.log(filePath);
+    res.sendFile(filePath);
 });
 app.get("/file/content", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const path = req.query.path;

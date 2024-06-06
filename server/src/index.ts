@@ -8,12 +8,15 @@ import path from 'path';
 import { promises as fs } from 'fs';
 
 const app = express()
+const cp = path.resolve(__dirname, "../../user");
 
 app.use(cors());
 app.use(express.json());
 const httpServer = app.listen(8080,()=>{
     console.log('Server is listening on port 8080');
 })
+
+app.use(express.static(path.join(cp, 'dist')));
 
 const wss = new WebSocketServer({server:httpServer});
 
@@ -44,7 +47,7 @@ wss.on('connection',function connection(ws){
     console.log("Connection made--->")
 })
 
-const cp = path.resolve(__dirname, "../../user");
+
 
 const ptyProcess = pty.spawn('bash', [], {
     name: 'xterm-color',
@@ -66,7 +69,7 @@ ptyProcess.onData((data)=>{
 
 
 chokidar.watch(cp).on('all', (event, path) => {
-    console.log("File change detected")
+    //console.log("File change detected")
     wss.clients.forEach(function each(client) {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({event:"fileChange",data:event}));
@@ -93,6 +96,12 @@ const saveCode = async (data:string)=>{
 app.get("/",(req,res)=>{
     res.json("Aditrya")
 })
+
+app.get('/preview', (req, res) => {
+    const filePath = path.join(cp, 'dist/index.html');
+    //console.log(filePath)
+    res.sendFile(filePath);
+});
 
 app.get("/file/content",async (req:Request,res:Response)=>{
     const path = req.query.path as string;
