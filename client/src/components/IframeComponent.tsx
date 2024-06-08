@@ -6,7 +6,7 @@ const IframeComponent = () => {
     return (
         <div className="w-full h-full border-none">
             <button onClick={()=>setCnt(cnt+1)}>Refresh</button>
-            <iframe key={cnt} src="http://100.0.226.146:1337/" className="w-full h-full border-none"/>
+            <iframe key={cnt} src="http://192.168.0.100:1337/" className="w-full h-full border-none"/>
         </div>
     )
 }
