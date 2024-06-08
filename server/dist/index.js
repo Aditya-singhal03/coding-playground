@@ -113,7 +113,7 @@ app.get("/", (req, res) => {
 });
 app.get('/preview', (req, res) => {
     const filePath = path_1.default.join(cp, 'dist/index.html');
-    console.log(filePath);
+    //console.log(filePath)
     res.sendFile(filePath);
 });
 app.get("/file/content", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
