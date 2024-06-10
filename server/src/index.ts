@@ -5,10 +5,9 @@ import cors from 'cors'
 import { getRootFileStructure } from './controller/getRootFileStructure';
 import chokidar from 'chokidar';
 import path from 'path';
-import { promises as fs } from 'fs';
+import fs from 'fs';
 
 const app = express()
-const cp = path.resolve(__dirname, "../../user");
 
 app.use(cors());
 app.use(express.json());
@@ -16,7 +15,11 @@ const httpServer = app.listen(8080,()=>{
     console.log('Server is listening on port 8080');
 })
 
-app.use(express.static(path.join(cp, 'dist')));
+if(!fs.existsSync("/workdir")){
+    fs.mkdirSync("/workdir", { recursive: true });
+    console.log(`Directory /workdir created.`);
+}
+
 
 const wss = new WebSocketServer({server:httpServer});
 
@@ -53,12 +56,12 @@ const ptyProcess = pty.spawn('bash', [], {
     name: 'xterm-color',
     cols: 80,
     rows: 30,
-    cwd: cp,
+    cwd: "/workdir",
     env: process.env
   });
 
 ptyProcess.onData((data)=>{
-    //console.log("Response->",data)
+    console.log("Response->",data)
     wss.clients.forEach(function each(client) {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({event:'terminalResponse',data:data}));
@@ -68,7 +71,7 @@ ptyProcess.onData((data)=>{
 })
 
 
-chokidar.watch(cp).on('all', (event, path) => {
+chokidar.watch("/workdir").on('all', (event, path) => {
     //console.log("File change detected")
     wss.clients.forEach(function each(client) {
         if (client.readyState === WebSocket.OPEN) {
@@ -85,7 +88,7 @@ const saveCode = async (data:string)=>{
     // console.log(code);
     // console.log(pathToFile)
     try{
-        await fs.writeFile(pathToFile,code)
+        await fs.promises.writeFile(pathToFile,code)
         console.log("code saved")
     }catch(err){
         console.log("Error saving code-->",err)
@@ -97,16 +100,10 @@ app.get("/",(req,res)=>{
     res.json("Aditrya")
 })
 
-app.get('/preview', (req, res) => {
-    const filePath = path.join(cp, 'dist/index.html');
-    //console.log(filePath)
-    res.sendFile(filePath);
-});
-
 app.get("/file/content",async (req:Request,res:Response)=>{
     const path = req.query.path as string;
     try {
-        const codeFromFile = await fs.readFile(path, 'utf-8');
+        const codeFromFile = await fs.promises.readFile(path, 'utf-8');
         return res.json({status:true,data:codeFromFile})
     } catch (error) {
         console.log("Error feteching code",error)

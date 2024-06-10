@@ -131,10 +131,10 @@ function App() {
             setModelLanguage('typescript');
             break;
         case 'jsx':
-            setModelLanguage('javascript');
+            setModelLanguage('jsx');
             break;
         case 'tsx':
-            setModelLanguage('typescript');
+            setModelLanguage('tsx');
             break;
         case 'json':
             setModelLanguage('json');

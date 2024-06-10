@@ -1,12 +1,24 @@
 import { useState } from "react";
-import traingleDown  from "../assets/triangle-down-svgrepo-com.svg"
-import traigleRight  from "../assets/triangle-right-svgrepo-com.svg"
+import traingleDown from "../assets/triangle-down-svgrepo-com.svg";
+import traigleRight from "../assets/triangle-right-svgrepo-com.svg";
 
 interface FileTreeInterface {
     path: string;
     name: string;
     children?: FileTreeInterface[]; // Optional if not all nodes have children
 }
+
+const sortNodes = (nodes: FileTreeInterface[]): FileTreeInterface[] => {
+    return nodes.sort((a, b) => {
+        if (a.children && !b.children) {
+            return -1;
+        }
+        if (!a.children && b.children) {
+            return 1;
+        }
+        return a.name.localeCompare(b.name);
+    });
+};
 
 const FileTreeNode = ({
     nodeName,
@@ -36,7 +48,7 @@ const FileTreeNode = ({
 
     return (
         <div className="">
-            <div className={`cursor-pointer flex items-center ${!isDir?"ml-[20px]":""}`} onClick={handleClick}>
+            <div className={`cursor-pointer flex items-center ${!isDir ? "ml-[20px]" : ""}`} onClick={handleClick}>
                 {isDir && (
                     <img
                         src={isOpen ? traingleDown : traigleRight}
@@ -48,7 +60,7 @@ const FileTreeNode = ({
             </div>
             {isOpen && nodeChildren && (
                 <div className="ml-4">
-                    {nodeChildren.map((child) => (
+                    {sortNodes(nodeChildren).map((child) => (
                         <FileTreeNode
                             key={child.path}
                             nodeName={child.name}
@@ -76,7 +88,7 @@ const FileTreeComponent = ({
             {fileTreeObject && (
                 <FileTreeNode
                     nodeName={fileTreeObject.name}
-                    nodeChildren={fileTreeObject.children}
+                    nodeChildren={sortNodes(fileTreeObject.children || [])}
                     path={fileTreeObject.path}
                     level={0}
                     setSelectedFilePath={setSelectedFilePath}
