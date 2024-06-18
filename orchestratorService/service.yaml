@@ -76,24 +76,20 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: service_name.peetcode.com
-    http:
+  - http:
       paths:
-      - path: /
+      - path: /service_name_preview
         pathType: Prefix
         backend:
           service:
             name: service_name
             port:
               number: 3001
-  - host: service_name.autogpt-cloud.com
-    http:
-      paths:
-      - path: /
+      - path: /service_name_main
         pathType: Prefix
         backend:
           service:
             name: service_name
             port:
-              number: 3000 
+              number: 3000
 
