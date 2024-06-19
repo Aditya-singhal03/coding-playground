@@ -2,7 +2,6 @@ import { Editor } from "@monaco-editor/react"
 import "@xterm/xterm/css/xterm.css"
 import Terminal from "../components/Terminal";
 import FileTreeComponent from "../components/FileTreeComponent";
-import newSocket from "../utils/socket";
 import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Terminal as XTerminal } from "@xterm/xterm";
@@ -22,6 +21,7 @@ interface FileTreeInterface {
 }
 
 const Playground = () => {
+    const newSocket = useRef<WebSocket | null>(null)
     const [fileTreeObject,setFileTreeObject] = useState<FileTreeInterface | null>(null)
     const [selectedFilePath,setSelectedFilePath] = useState<string>("")
     const [selectedFileCode,setSelectedFileCode] = useState<string>("")
@@ -43,7 +43,7 @@ const Playground = () => {
       const fetchFileStructure = async (eventFromChokidar?:string)=>{
           try{
               if(eventFromChokidar==='change') return;
-              const {data} = await axios.get("http://localhost:8080/files");
+              const {data} = await axios.get("http://localhost:30007/node4896_main/files");
               console.log(data)
               setFileTreeObject(data.msg)
           }catch(err){
@@ -51,31 +51,37 @@ const Playground = () => {
           }
       }
   
-    useEffect(()=>{
-      newSocket.onopen = ()=>{
-          console.log('Connection established');
-      }
-      newSocket.onmessage = (message) => {
-          console.log('Message received:', message.data);
-          const parsedMessage = JSON.parse(message.data);
-          const { event: eventType, data } = parsedMessage;
-          switch (eventType) {
+    useEffect(() => {
+        newSocket.current = new WebSocket('ws://localhost:30007/node4896_main');
+
+        newSocket.current.onopen = () => {
+            console.log('Connection established');
+        };
+
+        newSocket.current.onmessage = (message) => {
+            console.log('Message received:', message.data);
+            const parsedMessage = JSON.parse(message.data);
+            const { event: eventType, data } = parsedMessage;
+            switch (eventType) {
             case 'terminalResponse':
-              setTerminalResponse(data);
-              break;
+                setTerminalResponse(data);
+                break;
             case 'fileChange':
-              fetchFileStructure(data);
-              //updatePreview()
-              break;
+                fetchFileStructure(data);
+                break;
             default:
-              console.log(`Unknown event: ${eventType}`);
-          }
-      }
-      newSocket.onclose = ()=>{
-          console.log("Connection closed")
-      }
-      return () => newSocket.close();
-    },[])
+                console.log(`Unknown event: ${eventType}`);
+            }
+        };
+
+        newSocket.current.onclose = () => {
+            console.log("Connection closed");
+        };
+
+        return () => {
+            newSocket.current?.close();
+        };
+    }, []);
   
     const setTerminalResponse = (data:string)=>{
       console.log("writing",stateRef.current)
@@ -95,7 +101,7 @@ const Playground = () => {
     useEffect(()=>{
       if(code && !isSaved){
         const debounce = setTimeout(()=>{
-          if(selectedFilePath.length>0) newSocket.send(JSON.stringify({event:"saveCode",data:JSON.stringify({code:code,path:selectedFilePath})}))
+          if(selectedFilePath.length>0) newSocket.current?.send(JSON.stringify({event:"saveCode",data:JSON.stringify({code:code,path:selectedFilePath})}))
         },5000)
         return ()=>clearTimeout(debounce)
       }
@@ -103,7 +109,7 @@ const Playground = () => {
   
     const fetchFileCode = useCallback(async ()=>{
       try{
-        const {data} = await axios.get("http://localhost:8080/file/content",{
+        const {data} = await axios.get("http://localhost:30007/node4896_main/file/content",{
           params:{
             path:selectedFilePath
           }
@@ -354,7 +360,7 @@ const Playground = () => {
               </ResizablePanel>
               <ResizableHandle />
               <ResizablePanel defaultSize={55} maxSize={100} className="">
-                <Terminal setTerminal={setTerminal}/>
+                <Terminal setTerminal={setTerminal} newSocket={newSocket}/>
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>

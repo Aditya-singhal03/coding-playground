@@ -1,5 +1,5 @@
 import WebSocket, { WebSocketServer } from 'ws';
-import express, { Request,Response } from 'express'
+import express, { NextFunction, Request,Response } from 'express'
 import * as pty from 'node-pty';
 import cors from 'cors'
 import { getRootFileStructure } from './controller/getRootFileStructure';
@@ -11,8 +11,13 @@ const app = express()
 
 app.use(cors());
 app.use(express.json());
-const httpServer = app.listen(8080,()=>{
-    console.log('Server is listening on port 8080');
+
+app.use("*", (req: Request, res: Response, next: NextFunction) => {
+    console.log(req.params);
+    next();
+});
+const httpServer = app.listen(3000,()=>{
+    console.log('Server is listening on port 3000');
 })
 
 if(!fs.existsSync("/workdir")){
@@ -110,5 +115,7 @@ app.get("/file/content",async (req:Request,res:Response)=>{
         return res.json({status:false,data:"Error fetcing code"})
     }
 })
+
+
 
 app.get("/files",getRootFileStructure);

@@ -3,13 +3,12 @@ import "@xterm/xterm/css/xterm.css";
 import { useEffect, useRef } from "react";
 import { FitAddon } from '@xterm/addon-fit';
 
-import newSocket from "../utils/socket";
 
-const Terminal = ({setTerminal}:{setTerminal:React.Dispatch<React.SetStateAction<XTerminal | null>>}) => {
+const Terminal = ({setTerminal,newSocket}:{setTerminal:React.Dispatch<React.SetStateAction<XTerminal | null>>,newSocket:React.MutableRefObject<WebSocket | null>}) => {
     const terminalRef = useRef<HTMLDivElement>(null);
     const onDataFunc = (data: string) => {
         console.log(`Received data: ${data}`);
-        newSocket?.send(JSON.stringify({event:"terminalCommand",data:data}));
+        newSocket.current?.send(JSON.stringify({event:"terminalCommand",data:data}));
     }
 
     useEffect(() => {

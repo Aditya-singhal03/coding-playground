@@ -72,11 +72,11 @@ export const spinPlayground = async (req:Request,res:Response)=>{
     }
     //console.log(await existsFolder(bucketName,`code/${userName}/`))
     //console.log(await existsFolder(bucketName,`code/${userName}/${playGroundName}/`))
-    if(await existsFolder(bucketName,`code/${userName}/`) && await existsFolder(bucketName,`code/${userName}/${playGroundName}/`)) return res.send("Project already present");
+    if(await existsFolder(bucketName,`code/${userName}/`) && await existsFolder(bucketName,`code/${userName}/${playGroundName}/`)) return res.status(200).send("Project already present");
 
     await copys3Folder(`templates/${template}` , `code/${userName}/${playGroundName}`);
 
 
     
-    res.json({msg:"all good"})
+    return res.status(200).send("Project file copied to target place")
 }
