@@ -73,19 +73,21 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: service_name
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   ingressClassName: nginx
   rules:
   - http:
       paths:
-      - path: /service_name_preview
+      - path: /service_name_preview(/|$)(.*)
         pathType: Prefix
         backend:
           service:
             name: service_name
             port:
               number: 3001
-      - path: /service_name_main
+      - path: /service_name_main(/|$)(.*)
         pathType: Prefix
         backend:
           service:
