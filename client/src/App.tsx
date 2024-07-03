@@ -9,9 +9,11 @@ function App() {
   return (
     <Routes>
       <Route path='/auth' element={<AuthPage />} />
-      <Route path='/' element={<ProtectedRoute><Home /></ProtectedRoute>} />
-      <Route path='/playground' element={<ProtectedRoute><Playground /></ProtectedRoute>} />
-      <Route path='/success' element={<ProtectedRoute><SuccessPage /></ProtectedRoute>} />
+      <Route element={<ProtectedRoute/>}>
+        <Route path='/' element={<Home />} />
+        <Route path='/playground' element={<Playground />} />
+        <Route path='/success' element={<SuccessPage />} />
+      </Route>
     </Routes>
   );
 }
