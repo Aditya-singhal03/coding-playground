@@ -1,11 +1,12 @@
 import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
-//import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/utils/supabaseClient'
-//import { useEffect } from 'react'
+import { useAuth } from '@/provider/auth'
+import {  useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 
 const AuthPage = () => {
-    // const navigate = useNavigate()
+    const navigate = useNavigate()
 
     // useEffect(() => {
     //     const { data: {subscription} } = supabase.auth.onAuthStateChange(async (event,session) => {
@@ -19,18 +20,29 @@ const AuthPage = () => {
     //         subscription?.unsubscribe()
     //     }
     // }, [navigate])
+    const {user} = useAuth();
+    useEffect(()=>{
+        if(user) navigate("/")
+    },[user])
 
     return (
-        <div className='h-screen flex items-center justify-center'>
-            <header className='w-96'>
-                <Auth
-                    supabaseClient={supabase}
-                    appearance={{ theme: ThemeSupa }}
-                    theme='dark'
-                    providers={['google']}
-                />
-            </header>
-        </div>
+        <>
+            <div className='h-screen flex items-center justify-center'>
+                <header className='w-96'>
+                    <Auth
+                        supabaseClient={supabase}
+                        appearance={{ theme: ThemeSupa }}
+                        theme='dark'
+                        providers={['google']}
+                        redirectTo='http://localhost:5173/'
+                        />
+                </header>
+            </div>
+
+            <button onClick={()=>{
+                navigate("/")
+            }}>home</button>
+        </>
     )
 }
 

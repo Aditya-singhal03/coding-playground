@@ -1,17 +1,20 @@
 import { useAuth } from "../provider/auth";
-import { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 
-const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const { user, loading } = useAuth();
-  console.log(user);
+const ProtectedRoute = () => {
+  const { user ,loading} = useAuth();
+  console.log(user , loading);
 
-  if (loading) {
-    // Render a loading spinner or placeholder
-    return <div>Loading...</div>;
+  if(loading){
+    return (
+      <div className="flex justify-center items-center">
+        <p>loading</p>
+      </div>
+    )
   }
+  if (!user) return <Navigate to="/auth" />;
+  return <Outlet/>;
 
-  return user ? children : <Navigate to="/auth" />;
 }
 
 export default ProtectedRoute;
